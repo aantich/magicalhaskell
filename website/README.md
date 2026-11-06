@@ -33,8 +33,6 @@ Repository Pages settings must use **GitHub Actions** as the source and **magica
 
 Configure the root domain with GitHub Pages’ four A records (`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`) and `www` as a CNAME to `aantich.github.io`. Enable **Enforce HTTPS** once GitHub provisions the certificate. The `public/CNAME` file records the intended domain; the repository Pages setting controls the domain for Actions deployments.
 
-The manually dispatched **Enable GitHub Pages HTTPS** workflow can finish the initial HTTPS setup. It retries for up to 30 minutes while the certificate is pending, then enables enforcement using GitHub's short-lived Pages token. It exits immediately if HTTPS is already enforced; it is not a recurring workflow.
-
 `npm run verify:static` checks that the exported homepage, canonical metadata, structured data, domain file, and referenced local assets exist before deployment.
 
 ## Editing
