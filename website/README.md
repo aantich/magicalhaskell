@@ -61,6 +61,12 @@ Prices, ratings, sales counts, and testimonials are deliberately absent so the p
 
 ## Accessibility and behavior
 
-Semantic landmarks, a skip link, visible keyboard focus, native chapter disclosures, a mobile navigation toggle, reduced-motion support, descriptive image text, and live clipboard feedback. No analytics, external runtime fonts, contact forms, or login are needed for this page.
+Semantic landmarks, a skip link, visible keyboard focus, native chapter disclosures, a mobile navigation toggle, reduced-motion support, descriptive image text, and live clipboard feedback. Fonts are self-hosted; the page has no contact form or login.
+
+## Analytics
+
+Production builds load Google Tag Manager container `GTM-MSPJWKQS` from the root layout, including the data-layer/`gtag` initialization and Tag Manager's startup event. A hidden `noscript` iframe provides the standard fallback. Development builds leave tracking disabled.
+
+The `GTM-` ID identifies a Tag Manager container. Google Analytics collection depends on an Analytics tag being configured and published inside that container; no separate Analytics measurement ID is assumed by the website. See [Google's Tag Manager guidance](https://developers.google.com/tag-platform/devguides/existing).
 
 The retained Sites starter tooling under `scripts/`, `worker/`, and `.openai/` is available for future use. The active Vite configuration exports the site without a Worker. Generated dependencies, builds, logs, and local state are ignored by Git.

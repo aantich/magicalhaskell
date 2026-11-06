@@ -28,7 +28,37 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {process.env.NODE_ENV === "production" && (
+          <script
+            id="google-tag-manager"
+            dangerouslySetInnerHTML={{ __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){window.dataLayer.push(arguments);}
+              gtag('js', new Date());
+              window.dataLayer.push({'gtm.start': Date.now(), event: 'gtm.js'});
+              (function () {
+                var script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-MSPJWKQS';
+                document.head.appendChild(script);
+              })();
+            ` }}
+          />
+        )}
+      </head>
       <body>
+        {process.env.NODE_ENV === "production" && (
+          <noscript>
+            <iframe
+              src="https://www.googletagmanager.com/ns.html?id=GTM-MSPJWKQS"
+              title="Google Tag Manager"
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
