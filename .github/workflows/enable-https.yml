@@ -1,0 +1,49 @@
+name: Enable GitHub Pages HTTPS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  pages: write
+
+concurrency:
+  group: pages-https
+  cancel-in-progress: false
+
+jobs:
+  enable-https:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Enable HTTPS when GitHub issues the certificate
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            enabled="$(gh api "repos/$GH_REPO/pages" --jq .https_enforced)"
+            if [ "$enabled" = true ]; then
+              echo "HTTPS is already enforced."
+              exit 0
+            fi
+
+            if response="$(gh api --method PUT "repos/$GH_REPO/pages" -F https_enforced=true 2>&1)"; then
+              echo "HTTPS enforcement enabled."
+              exit 0
+            fi
+
+            case "$response" in
+              *"certificate does not exist yet"*)
+                echo "Waiting for GitHub's certificate (attempt $attempt of 30)."
+                sleep 60
+                ;;
+              *)
+                echo "$response"
+                exit 1
+                ;;
+            esac
+          done
+
+          echo "::error::GitHub has not issued the certificate yet. Check DNS and rerun this workflow."
+          exit 1
