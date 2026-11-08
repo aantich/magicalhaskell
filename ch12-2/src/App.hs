@@ -30,7 +30,8 @@ loop = do
         Just (':':cmds) -> processCommand (words cmds) >> controlMessage [TC.bold] "[User]" >> loop
         Just input ->
           if ml then do
-            uis <- lift (gets uiState)
-            lift $ modify (\s -> s { uiState = uis { currentLineBuffer = currentLineBuffer uis `T.append` "\n" `T.append` T.pack input}})
+            lift $ modify' (\s ->
+                let uis = uiState s
+                in s { uiState = uis { currentLineBuffer = currentLineBuffer uis `T.append` "\n" `T.append` T.pack input}})
             loop
           else lift (chatCompletionMid $ userMessage $ T.pack input) >> loop

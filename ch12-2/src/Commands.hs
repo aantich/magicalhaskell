@@ -77,8 +77,7 @@ _commandSearchRAG n = do
     txt <- currentLineBuffer <$> lift (gets uiState)
     if T.length txt > 0 then do
         res <- lift (searchRAGM n txt)
-        uis <- lift (gets uiState)
-        lift $ modify (\s -> s { uiState = uis { currentLineBuffer = ""}})
+        lift $ modify' (\s -> s { uiState = (uiState s) { currentLineBuffer = ""}})
         controlMessage [lgreen] "[Search Results:]"
         V.mapM_ (\(txt, score) -> controlMessage [white] ("[" ++ show score ++ "] " ++ T.unpack (T.take 80 txt))) res
     else controlMessage [yellow] "[WARNING] Your message is empty, please type something first"
@@ -89,17 +88,18 @@ commandEmbed _ = do
     txt <- currentLineBuffer <$> lift (gets uiState)
     if T.length txt > 0 then do
         lift (embedTextMid txt)
-        uis <- lift (gets uiState)
-        lift $ modify (\s -> s { uiState = uis { currentLineBuffer = ""}})
+        lift $ modify' (\s -> s { uiState = (uiState s) { currentLineBuffer = ""}})
         controlMessage [lgreen] "[SUCCESS] Embedded"
     else controlMessage [yellow] "[WARNING] Your message is empty, please type something first"
 
 -- toggle multiline mode on or off
 commandToggleMultiline :: [String] -> App()
 commandToggleMultiline _ = do
-    uis <- lift (gets uiState)
-    lift $ modify (\s -> s { uiState = uis {multilineMode = not (multilineMode uis)}})
-    controlMessage [lgreen] ("[INFO] Multiline mode: " ++ show (not (multilineMode uis)))
+    enabled <- lift $ state' $ \s ->
+        let uis = uiState s
+            enabled = not (multilineMode uis)
+        in (enabled, s { uiState = uis {multilineMode = enabled}})
+    controlMessage [lgreen] ("[INFO] Multiline mode: " ++ show enabled)
 
 -- send the text that is currently in the text buffer
 commandSendText :: [String] -> App()
@@ -108,11 +108,9 @@ commandSendText _ = do
     if T.length txt > 0 then do
         -- getting RAG context
         ctx <- lift (searchRAGM 3 txt >>= buildContextM 0.6)
-        msgs <- lift (gets messageHistory)
-        lift $ modify (\s -> s {messageHistory = systemMessage ctx : msgs} )
+        lift $ modify' (\s -> s {messageHistory = systemMessage ctx : messageHistory s})
         (asMsg, _) <- lift (chatCompletionMid $ userMessage txt)
-        uis <- lift (gets uiState)
-        lift $ modify (\s -> s { uiState = uis { currentLineBuffer = ""}})
+        lift $ modify' (\s -> s { uiState = (uiState s) { currentLineBuffer = ""}})
         let fmt = highlightCode "Markdown" (T.pack asMsg)
         outputStrLn (T.unpack fmt)
     else controlMessage [yellow] "[WARNING] Your message is empty, please type something first"

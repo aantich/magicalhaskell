@@ -86,9 +86,10 @@ chatCompletionMid message = do
     let messages = msgs ++ [message]
     liftIO (putStrLn "" >> putStrLn (as [white,bold] "[Jarvis]"))
     (asMsg, us) <- lift $ chatCompletion messages (currentModelId st) provider Nothing (loggerState st) processResp
-    let messages' = messages ++ [assistantMessage $ pack asMsg]
-    modify (\s -> s {messageHistory = messages'})
-    tell us
+    -- Append to the current history, and account for the usage in the same
+    -- transaction, so concurrent completions cannot overwrite each other.
+    stateWriter $ \(s, usage) ->
+        ((), s {messageHistory = messageHistory s ++ [message, assistantMessage $ pack asMsg]}, usage <> us)
     pure (asMsg, us)
     -- liftIO (putStrLn "" >> putStrLn (as [lgreen,bold] "[DONE]"))
     -- liftIO (putStrLn "" >> putStrLn (as [white,bold] "[User]"))
